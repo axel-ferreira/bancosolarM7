@@ -1,0 +1,21 @@
+{
+  "name": "evaluacion_m7",
+  "version": "1.0.0",
+  "description": "Servidor con Node que utiliza PostgreSQL para la gestión y persistencia de datos. Simula un sistema de transferencias que permite registrar nuevos usuarios con un balance inicial y basados en éstos, realiza transferencias de saldos entre ellos.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/axel-ferreira"
+  },
+  "author": "Axel Ferreira",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.1",
+    "nodemon": "^2.0.19",
+    "pg": "^8.7.3"
+  }
+}

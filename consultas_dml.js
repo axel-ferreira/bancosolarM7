@@ -3,6 +3,8 @@ const { Pool } = require('pg')
 const {config} = require('./db.js')
 //creamos el cliente 
 const pool = new Pool(config)
+
+
 //.Agregar usuario
  async function agregarUsuario (nombre, balance) {
     // 1. Solicito un 'cliente' al pool de conexiones
@@ -34,7 +36,7 @@ async function mostrarUsuarios(){
     return res.rows
   }
 //.Recibe los datos modificados de un usuario y los actualiza
-async function modificarUsuario (nombre, balance, id){
+async function modificarUsuario (id, nombre, balance){
     const client = await pool.connect()
     try {
         const resp = await client.query({
@@ -62,12 +64,13 @@ async function eliminarUsuario (id) {
   }
 //. Recibe datos para una trasferencia 
 const agregarTransferencia = async (emisor, receptor, monto_string) =>{
+    //Que monto sea sólo números    
     let monto = parseInt(monto_string)
     if(isNaN(monto)){
-        alert('El numero debe ser entero');
+        throw('El numero debe ser entero');
     }
     if(monto <= 0){
-        alert('El monto debe ser mayor que cero');
+        throw('El monto debe ser mayor que cero');
     }
     const client = await pool.connect()
 
@@ -82,10 +85,11 @@ const agregarTransferencia = async (emisor, receptor, monto_string) =>{
 
     //. Validar que el emisor tenga fondos suficientes
     if(el_emisor.rows[0].balance < monto){
-        alert('El monto es mayor a su balance. pobretón');
+        throw('El monto es mayor a su balance. pobretón');
     }
+    //. Validar que emisor y receptor no sean la misma persona
     if(el_emisor.rows[0].id === el_receptor.rows[0].id){
-        alert('Receptor no debe ser el emisor')
+        throw('Receptor no debe ser el emisor')
     }
     
     try {
@@ -102,7 +106,7 @@ const agregarTransferencia = async (emisor, receptor, monto_string) =>{
     }
     client.release()
 
-}
+  }
 //.Devuelve todas las transferencias 
 async function mostrarTransferencias(){
     const client = await pool.connect()
@@ -118,10 +122,13 @@ async function mostrarTransferencias(){
     client.release()
     return res.rows
   }
+
+
 module.exports = { 
     agregarUsuario,
     mostrarUsuarios, 
     eliminarUsuario, 
     modificarUsuario, 
     agregarTransferencia, 
-    mostrarTransferencias};
+    mostrarTransferencias,
+};

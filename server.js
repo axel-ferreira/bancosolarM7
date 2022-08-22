@@ -5,7 +5,8 @@ const {
     eliminarUsuario, 
     modificarUsuario, 
     agregarTransferencia, 
-    mostrarTransferencias} = require('./consultas_dml')
+    mostrarTransferencias,
+  } = require('./consultas_dml')
 const app = express()
 app.use(express.static(__dirname +'/public'))
 function getForm(req) {
@@ -48,10 +49,10 @@ app.post('/usuario', async (req, res) => {
 );
 //.Recibe datos modificados y los actualiza
 app.put('/usuario', async (req, res) => {
-    const id = req.query.id;
     const datos = await getForm(req)
+    const id = req.query.id;
     try {
-      await modificarUsuario(datos.nombre, datos.balance, id)
+      await modificarUsuario(id, datos.nombre, datos.balance)
     } catch (error) {
       console.log(error)
     }

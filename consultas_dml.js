@@ -34,18 +34,17 @@ async function mostrarUsuarios(){
     return res.rows
   }
 //.Recibe los datos modificados de un usuario y los actualiza
-async function modificarUsuario (id, nombre, balance){
+async function modificarUsuario (nombre, balance, id){
     const client = await pool.connect()
     try {
         const resp = await client.query({
-            text: `update usuarios set id = $1,
-                   nombre = $2,
-                   balance = $3
-                   where id = $1 returning *`,
-            values: [id, nombre, balance]       
+            text: `update usuarios set nombre=$1,
+                   balance=$2
+                   where id=$3`,
+            values: [nombre, balance, id]       
         })
     } catch (error) {
-        console.error(error)
+        console.log(error)
     }
     client.release()
   }
@@ -62,25 +61,48 @@ async function eliminarUsuario (id) {
     client.release()
   }
 //. Recibe datos para una trasferencia 
-async function agregarTransferencia (emisor, receptor, monto) {
+const agregarTransferencia = async (emisor, receptor, monto_string) =>{
+    let monto = parseInt(monto_string)
+    if(isNaN(monto)){
+        alert('El numero debe ser entero');
+    }
+    if(monto <= 0){
+        alert('El monto debe ser mayor que cero');
+    }
     const client = await pool.connect()
+
+    const el_emisor = await client.query({
+        text: 'select * from usuarios where nombre=$1',
+        values: [emisor]
+    })
+    const el_receptor = await client.query({
+        text: 'select * from usuarios where nombre=$1',
+        values: [receptor]
+    })
+
+    //. Validar que el emisor tenga fondos suficientes
+    if(el_emisor.rows[0].balance < monto){
+        alert('El monto es mayor a su balance. pobretón');
+    }
+    if(el_emisor.rows[0].id === el_receptor.rows[0].id){
+        alert('Receptor no debe ser el emisor')
+    }
+    
     try {
-        const idReceptor= await client.query(
-          `select id from usuarios where nombre=$1`,
-          [receptor]
-      )
-      const idemisor= await client.query(
-        `select id from usuarios where nombre=$1`,
-        [emisor]
-    )
-        const resp = await client.query(`insert into transferencias (emisor, receptor, monto) values ($1, $2, $3)`,
-        [idemisor, idReceptor, monto])
-        console.log('Transferencia agregada con éxito');
+        await client.query('insert into transferencias (emisor, receptor, monto) values ($1, $2, $3)',
+        [el_emisor.rows[0].id, el_receptor.rows[0].id, monto])
+
+        const descuento = el_emisor.rows[0].balance - monto;
+        const transfe = el_receptor.rows[0].balance + monto;
+
+        await client.query(`update usuarios set balance=${descuento} where id=${el_emisor.rows[0].id}`)
+        await client.query(`update usuarios set balance=${transfe} where id=${el_receptor.rows[0].id}`)
     } catch (error) {
-        console.error(error)
+        console.log(error)
     }
     client.release()
-  }
+
+}
 //.Devuelve todas las transferencias 
 async function mostrarTransferencias(){
     const client = await pool.connect()

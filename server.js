@@ -22,20 +22,27 @@ function getForm(req) {
     });
 }
 //_____________________rutas_____________________
-//.Aplicación cliente 
-app.get('/', async (req, res) =>{
-})
+
 //.mostrar usuarios
 app.get('/usuarios', async (req, res) => {
-    const datos = await mostrarUsuarios()
-    res.json(datos)
+    let usuarios;
+    try {
+      usuarios = await mostrarUsuarios()
+    } catch (error) {
+      console.log(error)
+    }
+    res.json(usuarios)
 }
 );
 //.Recibe datos nuevo usuario
 app.post('/usuario', async (req, res) => {
   const datos = await getForm (req)
   console.log(datos)
-  await agregarUsuario (datos.nombre, datos.balance)
+  try {
+    await agregarUsuario (datos.nombre, datos.balance)
+  } catch (error) {
+    console.log(error)
+  }
   res.json({})
 }
 );
@@ -43,28 +50,48 @@ app.post('/usuario', async (req, res) => {
 app.put('/usuario', async (req, res) => {
     const id = req.query.id;
     const datos = await getForm(req)
-    modificarUsuario(datos.nombre, datos.balance, id)
-    res.end()
+    try {
+      await modificarUsuario(datos.nombre, datos.balance, id)
+    } catch (error) {
+      console.log(error)
+    }
+    res.json({})
 }
 );
 //.Recibe id usuario y lo elimina 
 app.delete('/usuario', async (req, res) => {
     const id = req.query.id;
-    eliminarUsuario(id)
-    res.end()
+    try {
+      await eliminarUsuario(id)
+    } catch (error) {
+      console.log(error)
+    }
+    res.json({})
 }
 );
+
+
 //.Recibe datos para realizar una transferencia 
 app.post('/transferencia', async (req, res) => {
   const datos = await getForm (req)
   console.log(datos)
-  await agregarTransferencia (datos.emisor, datos.receptor, datos.monto)
+  try {
+    await agregarTransferencia (datos.emisor, datos.receptor, datos.monto)
+  } catch (error) {
+    res.statusCode = 400
+    return res.json({error: error})
+  }
   res.json({})
 }
 );
 //.Devuelve transferencias en forma de arreglo
 app.get('/transferencias', async (req, res) => {
-    const datos = await mostrarTransferencias()
+    let datos;
+  try {
+      datos = await mostrarTransferencias()
+    } catch (error) {
+      console.log(error)
+    }
     res.json(datos)
 }
 );
